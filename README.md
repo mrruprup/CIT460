@@ -22,6 +22,7 @@ Deployment is handled using Docker and HiveMQ Cloud. Docker is used to provide a
 Cloud-based MQTT was chosen so the Arduino and the application do not need to be on the same local network. This allows the conveyor to be located anywhere while still being controlled remotely, which better reflects how MQTT is used in industrial environments.
 
 PROJECT PLAN AND TIMELINE
+
 Before the first sprint, conveyor parts will be gathered, the conveyor will be built, and Arduino code will be written to control the system. This ensures a working hardware product early in the project.
 Before the second sprint, the MQTT protocol will be set up using Docker, and communication between the publisher and subscriber will be verified. Basic communication between the Arduino and the React Native application should be established.
 Before the third sprint, the React Native application will be fully developed. Efficient communication will be implemented, security such as proper credentials will be added, and both the Arduino and application will be able to publish and subscribe to the MQTT broker.
