@@ -1,0 +1,127 @@
+// ===============================
+// ESP32-C3 Conveyor Controller
+// Works with Arduino using RUN_SIGNAL
+// ===============================
+
+// Use RUN_SIGNAL to run Arduino 
+// this is just defining the pin which receives high/low from Arduino
+#define RUN_SIGNAL D6   // GPIO 6
+
+// Motor Driver: Pin Definitions for TB6612FNG
+#define AI1   D2  //Motor A
+#define AI2   D3  //Motor A
+#define PWMA  D4  //Motor A PWM speed control
+#define STBY  D5  //Driver standby (needs to be high to run)
+#define PWMB  D8  //Motor B PWM speed control
+#define BI2   D9  //Motor B
+#define BI1   D10 //Motor B
+
+bool conveyorsRunning = false; //tracks current state of conveyor
+bool lastRunSignal = LOW; //stores previous run signal
+
+void setup() {
+  //used for serial monitor
+  Serial.begin(115200);
+  delay(1000);
+  Serial.println("ESP32-C3 Conveyor Controller Started");
+
+  //Configure run signal as input with the pulldown
+  //this ensures that the arduino is set to low when the arduino is not driving
+  /*
+  pinMode pulled from arduino docs. According to Arduino, 
+  "Configures the specified pin to behave either as an INPUT or an OUTPUT."
+  <https://docs.arduino.cc/language-reference/en/functions/digital-io/pinMode/>
+  */
+  pinMode(RUN_SIGNAL, INPUT_PULLDOWN);
+
+  //make motor pins as outputs
+  pinMode(AI1, OUTPUT);
+  pinMode(AI2, OUTPUT);
+  pinMode(BI1, OUTPUT);
+  pinMode(BI2, OUTPUT);
+  pinMode(STBY, OUTPUT);
+  pinMode(PWMA, OUTPUT);
+  pinMode(PWMB, OUTPUT);
+
+  //make sure conveyors start in stopped state
+  stopConveyors();
+  
+  Serial.println("Setup complete");
+}
+
+//Main Loop
+void loop() {
+  //read current state of RUN from Arduino
+  /*
+  digitalRead pulled from Arduino docs. Arduino states, 
+  "Reads the value from a specified digital pin, either HIGH or LOW."
+  <https://docs.arduino.cc/language-reference/en/functions/digital-io/digitalread/>
+  */
+  bool runSignal = digitalRead(RUN_SIGNAL);
+
+  //ensure run signal is high and that the motor is not currently on
+  if (runSignal == HIGH && lastRunSignal == LOW && !conveyorsRunning) {
+    conveyorsRunning = true;
+    startConveyors(); //start conveyors
+    Serial.println("RUN_SIGNAL HIGH - Starting conveyors");
+  }
+
+  // ensures the run signal is low and the conveyors are on and running
+  if (runSignal == LOW && lastRunSignal == HIGH && conveyorsRunning) {
+    conveyorsRunning = false;
+    stopConveyors();  //stop conveyors
+    Serial.println("RUN_SIGNAL LOW - Stopping conveyors");
+  }
+
+  lastRunSignal = runSignal; // save state for next iteration
+}
+
+// --------------------
+//Start Conveyors
+// --------------------
+void startConveyors() {
+  //STBY must be high for motors to run
+  /*
+  digitalWrite pulled from Arduino docs. 
+  Arduino states, "Write a HIGH or a LOW value to a digital pin."
+  <https://docs.arduino.cc/language-reference/en/functions/digital-io/digitalwrite/>
+  */
+  digitalWrite(STBY, HIGH);
+  //allows time for motor driver
+  delay(10);
+
+  // Motor A forward
+  digitalWrite(AI1, HIGH);
+  digitalWrite(AI2, LOW);
+  analogWrite(PWMA, 200); //motor speed 0-255
+
+  // Motor B forward
+  digitalWrite(BI1, HIGH);
+  digitalWrite(BI2, LOW);
+  analogWrite(PWMB, 200); //motor speed 0-255
+  
+  Serial.println("Conveyors started - STBY HIGH, Motors set to FORWARD");
+}
+
+//----------------------
+//Stop Conveyors
+//----------------------
+void stopConveyors() {
+  /*
+  analogWrite obtained from Arduino docs. 
+  Arduino states, "Writes an analog value (PWM wave) to a pin."
+  <https://docs.arduino.cc/language-reference/en/functions/analog-io/analogWrite/>
+  */
+  analogWrite(PWMA, 0); //speed 0
+  analogWrite(PWMB, 0); //speed 0
+
+  //clear pin values
+  digitalWrite(AI1, LOW);
+  digitalWrite(AI2, LOW);
+  digitalWrite(BI1, LOW);
+  digitalWrite(BI2, LOW);
+
+  //put driver into standby
+  digitalWrite(STBY, LOW);
+  Serial.println("Conveyors stopped");
+}
