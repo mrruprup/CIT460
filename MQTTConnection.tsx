@@ -5,22 +5,28 @@
 import React, { useEffect, useState, useRef } from 'react';
 import mqtt from 'mqtt'; 
 import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
+import Constants from 'expo-constants';
+
 
 export default function MQTTConnection() {
   const [motorSpeed, setMotorSpeed] = useState('0'); 
   const [inputSpeed, setInputSpeed] = useState('0');
   const clientRef = useRef<any>(null);
 
+  // Safe access to Expo config (prevents crashes)
+  const MQTT_CONFIG = Constants.expoConfig?.extra || {};
+
+  const MQTT_URL = MQTT_CONFIG.MQTT_URL;
+  const MQTT_USERNAME = MQTT_CONFIG.MQTT_USERNAME;
+  const MQTT_PASSWORD = MQTT_CONFIG.MQTT_PASSWORD;
+  
   useEffect(() => {
     // Connect to HiveMQ Cloud
-    const client = mqtt.connect(
-      'wss://3684d9a84d1f4bdb82d5ca869366e5e9.s1.eu.hivemq.cloud:8884/mqtt',
-      {
-        username: 'SiteName',         
-        password: 'SitePassword26!',
-        reconnectPeriod: 1000, //tries to reconnect every second if connection is lost
-      }
-    );
+    const client = mqtt.connect(MQTT_URL, {
+      username: MQTT_USERNAME,
+      password: MQTT_PASSWORD,
+      reconnectPeriod: 1000,
+    });
 
     clientRef.current = client;
 

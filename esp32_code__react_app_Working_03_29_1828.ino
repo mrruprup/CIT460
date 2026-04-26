@@ -6,18 +6,10 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
+#include "esp32_secrets.h"
 
 // <https://docs.hivemq.com/hivemq-cloud/quick-start-guide.html>
 
-// Wifi Credentials
-#define WIFI_SSID "Wifi"
-#define WIFI_PASSWORD "Password"
-
-//MQTT broker settings
-#define MQTT_CLUSTER "3684d9a84d1f4bdb82d5ca869366e5e9.s1.eu.hivemq.cloud"
-#define MQTT_PORT 8883
-#define MQTT_USER "SiteName"
-#define MQTT_PASSWORD "SitePassword26!"
 
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
@@ -43,6 +35,7 @@ bool requestedByHardware = false;  // state requested by hardware button
 
 int motorSpeed = 200;              // default motor speed (0-255)
 const char* speedTopic = "factory/conveyor/speed";
+
 
 // ====================
 // Wi-Fi Connect
